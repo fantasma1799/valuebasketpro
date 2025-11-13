@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ValueBasketPro</title>
+  <style>
+    body {
+      background: #0a0a0a;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-align: center;
+    }
+    input, button {
+      padding: 12px;
+      margin: 8px;
+      width: 90%;
+      max-width: 320px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+    }
+    button {
+      background: #0099ff;
+      color: white;
+      font-weight: bold;
+    }
+    #resultados {
+      margin-top: 25px;
+      padding: 20px;
+      background: #111;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>VALUEBASKETPRO</h1>
+  <h3>Versión Gratis (BallDontLie API)</h3>
+
+  <p><b>Buscar partido NBA</b></p>
+
+  <input id="team1" placeholder="Equipo 1 (ej: Lakers)" />
+  <input id="team2" placeholder="Equipo 2 (ej: Celtics)" />
+
+  <button onclick="buscarPartido()">Buscar</button>
+
+  <div id="resultados"></div>
+
+  <script>
+    async function buscarPartido() {
+      const t1 = document.getElementById("team1").value.toLowerCase();
+      const t2 = document.getElementById("team2").value.toLowerCase();
+
+      document.getElementById("resultados").innerHTML = "Buscando...";
+
+      const url = "https://www.balldontlie.io/api/v1/games?seasons[]=2024";
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      const juegos = data.data.filter(g =>
+        g.home_team.full_name.toLowerCase().includes(t1) ||
+        g.visitor_team.full_name.toLowerCase().includes(t1) ||
+        g.home_team.full_name.toLowerCase().includes(t2) ||
+        g.visitor_team.full_name.toLowerCase().includes(t2)
+      );
+
+      if (juegos.length === 0) {
+        document.getElementById("resultados").innerHTML = "No se encontraron partidos.";
+        return;
+      }
+
+      let html = "<h2>Resultados encontrados:</h2>";
+
+      juegos.forEach(j => {
+        html += `
+          <div style="margin-bottom:15px;">
+            <b>${j.home_team.full_name}</b> vs <b>${j.visitor_team.full_name}</b><br>
+            Fecha: ${j.date}<br>
+            Marcador: ${j.home_team_score} - ${j.visitor_team_score}
+          </div>
+        `;
+      });
+
+      document.getElementById("resultados").innerHTML = html;
+    }
+  </script>
+</body>
+</html>
