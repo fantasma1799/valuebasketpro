@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Analizador Pro Totales NBA & Euroliga</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg-main: #050816;
+      --bg-card: #0b1020;
+      --bg-card-soft: #101526;
+      --accent: #f3a318;
+      --accent-strong: #ffcc4d;
+      --border-soft: #22263a;
+      --text-main: #f5f5f5;
+      --text-soft: #b0b4c6;
+      --danger: #ff4b5c;
+      --success: #00e676;
+      --warning: #ffb300;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1b2440 0, #050816 50%, #02030a 100%);
+      color: var(--text-main);
+    }
+
+    h1, h2 {
+      text-align: center;
+      margin: 6px 0;
+      letter-spacing: 0.04em;
+    }
+    h1 { font-size: 1.25rem; }
+    h2 { font-size: 1.05rem; }
+
+    p {
+      font-size: 0.85rem;
+      color: var(--text-soft);
+      margin-top: 0;
+      text-align: center;
+    }
+
+    .card {
+      max-width: 640px;
+      margin: 0 auto 16px auto;
+      background: linear-gradient(145deg, #050816 0%, var(--bg-card) 60%, #050816 100%);
+      border-radius: 16px;
+      padding: 16px 14px 18px;
+      box-shadow: 0 18px 45px rgba(0,0,0,.75), 0 0 0 1px rgba(255,255,255,0.03);
+      border: 1px solid var(--border-soft);
+      position: relative;
+      overflow: hidden;
+    }
+
+    label {
+      display: block;
+      font-size: 0.78rem;
+      margin-top: 8px;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    input[type="number"], input[type="text"] {
+      width: 100%;
+      padding: 8px 10px;
+      margin-top: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border-soft);
+      background: rgba(5,8,22,0.95);
+      color: var(--text-main);
+      font-size: 0.9rem;
+      outline: none;
+      appearance: none;
+    }
+
+    input::placeholder {
+      color: #676c84;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(243,163,24,0.35);
+      background: #050816;
+    }
+
+    button {
+      width: 100%;
+      padding: 11px;
+      border-radius: 999px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: radial-gradient(circle at top left, var(--accent-strong) 0, var(--accent) 35%, #f18900 100%);
+      color: #120805;
+      margin: 14px 0 6px;
+      box-shadow: 0 10px 26px rgba(0,0,0,0.9);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    button:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.85);
+    }
+
+    .result {
+      padding: 10px 10px 11px;
+      border-radius: 14px;
+      background: radial-gradient(circle at top left, rgba(243,163,24,0.08) 0, #101526 40%, #050816 100%);
+      border: 1px solid rgba(88,96,130,0.8);
+      font-size: 0.83rem;
+      line-height: 1.5;
+      margin-top: 10px;
+      color: #dde0f3;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.73rem;
+      margin-top: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: 1px solid rgba(0,0,0,0.6);
+    }
+    .badge::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: currentColor;
+    }
+    .valor-over {
+      background: linear-gradient(135deg, rgba(0,200,83,0.17), rgba(0,230,118,0.05));
+      color: var(--success);
+    }
+    .neutral {
+      background: linear-gradient(135deg, rgba(255,179,0,0.17), rgba(255,224,130,0.05));
+      color: var(--warning);
+    }
+    .valor-under {
+      background: linear-gradient(135deg, rgba(255,75,92,0.17), rgba(255,138,128,0.05));
+      color: var(--danger);
+    }
+
+    .hint {
+      font-size: 0.78rem;
+      color: var(--text-soft);
+      margin-top: 4px;
+    }
+
+    .stake-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 0.78rem;
+      background: radial-gradient(circle at top left, rgba(243,163,24,0.12), rgba(5,8,22,0.98));
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(243,163,24,0.25);
+    }
+    .stake-table th, .stake-table td {
+      border: 1px solid rgba(35,40,70,0.85);
+      padding: 4px 6px;
+      text-align: center;
+    }
+    .stake-table th {
+      background: linear-gradient(135deg, rgba(243,163,24,0.28), rgba(5,8,16,1));
+      color: #fff6df;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.75rem;
+    }
+    .stake-table td:nth-child(1) { font-weight: 600; color: var(--accent-strong); }
+
+    .edge-pos { color: var(--success); font-weight: 600; }
+    .edge-neg { color: var(--danger); font-weight: 600; }
+
+    .section-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #8087a6;
+      margin-bottom: 2px;
+      text-align: center;
+    }
+
+    .checks-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      margin-top: 6px;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+    .checks-row label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 0;
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 0.78rem;
+    }
+    .checks-row input[type="checkbox"] {
+      width: auto;
+      accent-color: #f3a318;
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Bankroll -->
+  <div class="card">
+    <h1>Analizador Pro Totales</h1>
+    <p>NBA y Euroliga con bank en soles, stake por unidades, bajas importantes y cálculo de valor (edge).</p>
+
+    <p class="section-label">Ajustes de Bankroll</p>
+
+    <label for="bankroll">Bankroll total (S/.)</label>
+    <input id="bankroll" type="number" step="0.01" placeholder="Ej: 1500" />
+
+    <label for="unitPercent">% del bank que representa 1 unidad</label>
+    <input id="unitPercent" type="number" step="0.01" placeholder="Ej: 1 (1%)" />
+
+    <p class="hint">
+      Ejemplo: bank 2000 y 1% ⇒ 1u = 20 soles.  
+      Si el modelo sugiere 2u ⇒ ≈ 40 soles.
+    </p>
+
+    <p class="section-label">Guía de stake</p>
+    <table class="stake-table">
+      <tr><th>Nivel</th><th>Significado</th><th>Stake sugerido</th></tr>
+      <tr><td>1</td><td>Muy bajo</td><td>0.5 u</td></tr>
+      <tr><td>2</td><td>Bajo</td><td>1.0 u</td></tr>
+      <tr><td>3</td><td>Medio</td><td>1.5 u</td></tr>
+      <tr><td>4</td><td>Alto</td><td>2.0 u</td></tr>
+      <tr><td>5</td><td>Muy alto</td><td>2.5 u</td></tr>
+    </table>
+  </div>
+
+  <!-- NBA -->
+  <div class="card">
+    <h2>NBA – Analizador</h2>
+    <p>Usa promedios por partido (season o últimos X juegos).</p>
+
+    <label>Equipo Local</label>
+    <input id="nbaLocal" type="text" placeholder="Ej: Miami Heat" />
+
+    <label>Equipo Visita</label>
+    <input id="nbaVisita" type="text" placeholder="Ej: New York Knicks" />
+
+    <label>PF Local</label>
+    <input id="nbaPfLocal" type="number" step="0.1" placeholder="Puntos anotados" />
+
+    <label>PC Local</label>
+    <input id="nbaPcLocal" type="number" step="0.1" placeholder="Puntos recibidos" />
+
+    <label>PF Visita</label>
+    <input id="nbaPfVisita" type="number" step="0.1" placeholder="Puntos anotados" />
+
+    <label>PC Visita</label>
+    <input id="nbaPcVisita" type="number" step="0.1" placeholder="Puntos recibidos" />
+
+    <label>Línea total O/U</label>
+    <input id="nbaLinea" type="number" step="0.5" placeholder="Ej: 234.5" />
+
+    <label>Cuota OVER</label>
+    <input id="nbaCuotaOver" type="number" step="0.01" placeholder="Ej: 1.90" />
+
+    <label>Cuota UNDER</label>
+    <input id="nbaCuotaUnder" type="number" step="0.01" placeholder="Ej: 1.90" />
+
+    <label>Factor ritmo NBA</label>
+    <input id="nbaRitmo" type="number" step="0.01" value="1.00" />
+
+    <label>Bajas importantes</label>
+    <div class="checks-row">
+      <label><input type="checkbox" id="nbaOfLocal" /> Ofensiva Local</label>
+      <label><input type="checkbox" id="nbaDefLocal" /> Defensiva Local</label>
+      <label><input type="checkbox" id="nbaOfVisita" /> Ofensiva Visita</label>
+      <label><input type="checkbox" id="nbaDefVisita" /> Defensiva Visita</label>
+    </div>
+
+    <button onclick="analizarNBA()">Analizar partido NBA</button>
+
+    <div id="resNBA" class="result">
+      Completa PF/PC, línea, cuotas y bajas (si las hay), luego pulsa <b>Analizar partido NBA</b>.
+    </div>
+  </div>
+
+  <!-- Euroliga -->
+  <div class="card">
+    <h2>Euroliga – Analizador</h2>
+    <p>Ritmo más bajo que NBA. Factor por defecto 0.875.</p>
+
+    <label>Equipo Local</label>
+    <input id="euroLocal" type="text" placeholder="Ej: Zalgiris Kaunas" />
+
+    <label>Equipo Visita</label>
+    <input id="euroVisita" type="text" placeholder="Ej: Maccabi Tel Aviv" />
+
+    <label>PF Local</label>
+    <input id="euroPfLocal" type="number" step="0.1" placeholder="Puntos anotados" />
+
+    <label>PC Local</label>
+    <input id="euroPcLocal" type="number" step="0.1" placeholder="Puntos recibidos" />
+
+    <label>PF Visita</label>
+    <input id="euroPfVisita" type="number" step="0.1" placeholder="Puntos anotados" />
+
+    <label>PC Visita</label>
+    <input id="euroPcVisita" type="number" step="0.1" placeholder="Puntos recibidos" />
+
+    <label>Línea total O/U</label>
+    <input id="euroLinea" type="number" step="0.5" placeholder="Ej: 160.5" />
+
+    <label>Cuota OVER</label>
+    <input id="euroCuotaOver" type="number" step="0.01" placeholder="Ej: 1.80" />
+
+    <label>Cuota UNDER</label>
+    <input id="euroCuotaUnder" type="number" step="0.01" placeholder="Ej: 2.00" />
+
+    <label>Factor ritmo Euroliga</label>
+    <input id="euroRitmo" type="number" step="0.001" value="0.875" />
+
+    <label>Bajas importantes</label>
+    <div class="checks-row">
+      <label><input type="checkbox" id="euroOfLocal" /> Ofensiva Local</label>
+      <label><input type="checkbox" id="euroDefLocal" /> Defensiva Local</label>
+      <label><input type="checkbox" id="euroOfVisita" /> Ofensiva Visita</label>
+      <label><input type="checkbox" id="euroDefVisita" /> Defensiva Visita</label>
+    </div>
+
+    <button onclick="analizarEuro()">Analizar partido Euroliga</button>
+
+    <div id="resEuro" class="result">
+      Completa PF/PC, línea, cuotas y bajas (si las hay), luego pulsa <b>Analizar partido Euroliga</b>.
+    </div>
+  </div>
+
+<script>
+  function probImp(cuota) {
+    if (!cuota || cuota <= 1) return null;
+    return (1 / cuota) * 100;
+  }
+
+  function probModeloOver(diff) {
+    let p = 50 + diff * 3.5;
+    if (p < 1) p = 1;
+    if (p > 99) p = 99;
+    return p;
+  }
+
+  function valorUnidadEnSoles() {
+    const bank = parseFloat(document.getElementById('bankroll').value);
+    const pct = parseFloat(document.getElementById('unitPercent').value);
+    if (isNaN(bank) || isNaN(pct) || pct <= 0) return null;
+    return bank * (pct / 100);
+  }
+
+  function nivelDesdeDiff(diffAbs) {
+    let nivel = 1;
+    if (diffAbs >= 3) nivel = 2;
+    if (diffAbs >= 5) nivel = 3;
+    if (diffAbs >= 7) nivel = 4;
+    if (diffAbs >= 10) nivel = 5;
+    return nivel;
+  }
+
+  function stakeDesdeNivel(nivel) {
+    return (nivel * 0.5).toFixed(1);
+  }
+
+  // Opción 1 – modelo realista de bajas
+  function calcularAjusteBajas(nombreL, nombreV, ofL, defL, ofV, defV) {
+    let info = "";
+    let offTeams = [];
+    let defTeams = [];
+    let numOff = 0;
+    let numDef = 0;
+
+    if (ofL) { numOff++; offTeams.push(nombreL); }
+    if (ofV) { numOff++; offTeams.push(nombreV); }
+    if (defL) { numDef++; defTeams.push(nombreL); }
+    if (defV) { numDef++; defTeams.push(nombreV); }
+
+    let ajusteOff = 0;
+    let ajusteDef = 0;
+
+    if (numOff === 1) ajusteOff = -6;
+    else if (numOff >= 2) ajusteOff = -9;
+
+    if (numDef === 1) ajusteDef = +3.5;
+    else if (numDef >= 2) ajusteDef = +6;
+
+    if (numOff > 0) {
+      info += "<span class='hint'>Bajas ofensivas en: " + offTeams.join(" y ") +
+              " (ajuste " + ajusteOff.toFixed(1) + " pts).</span><br>";
+    }
+    if (numDef > 0) {
+      info += "<span class='hint'>Bajas defensivas en: " + defTeams.join(" y ") +
+              " (ajuste " + ajusteDef.toFixed(1) + " pts).</span><br>";
+    }
+
+    return {
+      ajusteTotal: ajusteOff + ajusteDef,
+      detalleHtml: info
+    };
+  }
+
+  function armarSalida(nombreL, nombreV, totalTeorico, ritmo, totalRitmo, bajas, linea, diff, probModOver, probModUnder, cuotaOver, cuotaUnder, box, esEuro) {
+    const diffAbs = Math.abs(diff);
+
+    let lado = "Neutral";
+    let etiqueta = "Contexto neutral / línea justa";
+    let clase = "neutral";
+
+    if (diff >= 5) {
+      lado = "OVER";
+      etiqueta = esEuro ? "Modelo favorece OVER (Euroliga)" : "Modelo favorece OVER";
+      clase = "valor-over";
+    } else if (diff <= -5) {
+      lado = "UNDER";
+      etiqueta = "Modelo favorece UNDER";
+      clase = "valor-under";
+    }
+
+    const probImpOver = probImp(cuotaOver);
+    const probImpUnder = probImp(cuotaUnder);
+
+    let edgeOver = null;
+    let edgeUnder = null;
+
+    if (probImpOver !== null) edgeOver = probModOver - probImpOver;
+    if (probImpUnder !== null) edgeUnder = probModUnder - probImpUnder;
+
+    const nivel = nivelDesdeDiff(diffAbs);
+    const stakeU = stakeDesdeNivel(nivel);
+    const valorU = valorUnidadEnSoles();
+    let stakeS = null;
+    if (valorU !== null) stakeS = (parseFloat(stakeU) * valorU).toFixed(2);
+
+    const totalFinal = totalRitmo + bajas.ajusteTotal;
+
+    let html = "";
+    html += "<b>Partido:</b> " + nombreL + " vs " + nombreV + "<br>";
+    html += "<b>Total teórico (sin ritmo):</b> " + totalTeorico.toFixed(1) + " pts<br>";
+    html += "<b>Factor ritmo " + (esEuro ? "Euroliga" : "NBA") + ":</b> " + ritmo.toFixed(esEuro ? 3 : 2) + "<br>";
+    html += "<b>Total ajustado por ritmo:</b> " + totalRitmo.toFixed(1) + " pts<br>";
+    html += "<b>Ajuste por bajas:</b> " + bajas.ajusteTotal.toFixed(1) + " pts<br>";
+    html += "<b>Total ajustado final:</b> " + totalFinal.toFixed(1) + " pts<br>";
+    html += "<b>Línea total O/U:</b> " + linea.toFixed(1) + " pts<br>";
+    html += "<b>Diferencia (modelo final - línea):</b> " + diff.toFixed(1) + " pts<br><br>";
+
+    html += "<span class='badge " + clase + "'>" + etiqueta + "</span><br><br>";
+
+    if (bajas.detalleHtml) {
+      html += bajas.detalleHtml + "<br>";
+    }
+
+    html += "<b>Prob. modelo OVER:</b> " + probModOver.toFixed(1) + "%<br>";
+    html += "<b>Prob. modelo UNDER:</b> " + probModUnder.toFixed(1) + "%<br><br>";
+
+    if (probImpOver !== null) {
+      html += "<b>Prob. implícita OVER (" + cuotaOver.toFixed(2) + "):</b> " + probImpOver.toFixed(1) + "%<br>";
+    }
+    if (probImpUnder !== null) {
+      html += "<b>Prob. implícita UNDER (" + cuotaUnder.toFixed(2) + "):</b> " + probImpUnder.toFixed(1) + "%<br><br>";
+    }
+
+    if (edgeOver !== null) {
+      html += "<b>Edge OVER:</b> <span class='" + (edgeOver >= 0 ? "edge-pos" : "edge-neg") + "'>" +
+              edgeOver.toFixed(1) + "%</span><br>";
+    }
+    if (edgeUnder !== null) {
+      html += "<b>Edge UNDER:</b> <span class='" + (edgeUnder >= 0 ? "edge-pos" : "edge-neg") + "'>" +
+              edgeUnder.toFixed(1) + "%</span><br><br>";
+    }
+
+    html += "<b>Nivel de confianza:</b> " + nivel + "/5<br>";
+    html += "<b>Lado sugerido:</b> " + lado + "<br>";
+    html += "<b>Stake sugerido:</b> " + stakeU + " u";
+    if (stakeS !== null) html += " (≈ " + stakeS + " soles)";
+    html += "<br><span class='hint'>Recuerda: no hay apuesta segura. Usa siempre gestión de bank responsable.</span>";
+
+    box.innerHTML = html;
+  }
+
+  function analizarNBA() {
+    const nombreL = (document.getElementById('nbaLocal').value || 'Local').trim();
+    const nombreV = (document.getElementById('nbaVisita').value || 'Visita').trim();
+    const pfL = parseFloat(document.getElementById('nbaPfLocal').value);
+    const pcL = parseFloat(document.getElementById('nbaPcLocal').value);
+    const pfV = parseFloat(document.getElementById('nbaPfVisita').value);
+    const pcV = parseFloat(document.getElementById('nbaPcVisita').value);
+    const linea = parseFloat(document.getElementById('nbaLinea').value);
+    const cuotaOver = parseFloat(document.getElementById('nbaCuotaOver').value);
+    const cuotaUnder = parseFloat(document.getElementById('nbaCuotaUnder').value);
+    let ritmo = parseFloat(document.getElementById('nbaRitmo').value);
+
+    const ofL = document.getElementById('nbaOfLocal').checked;
+    const defL = document.getElementById('nbaDefLocal').checked;
+    const ofV = document.getElementById('nbaOfVisita').checked;
+    const defV = document.getElementById('nbaDefVisita').checked;
+
+    const box = document.getElementById('resNBA');
+
+    if ([pfL, pcL, pfV, pcV, linea].some(v => isNaN(v))) {
+      box.innerHTML = "Faltan datos. Ingresa PF, PC de ambos equipos y la línea total.";
+      return;
+    }
+    if (isNaN(ritmo) || ritmo <= 0) ritmo = 1.0;
+
+    const totalTeorico = (pfL + pcL + pfV + pcV) / 2;
+    const totalRitmo = totalTeorico * ritmo;
+
+    const bajas = calcularAjusteBajas(nombreL, nombreV, ofL, defL, ofV, defV);
+    const totalFinal = totalRitmo + bajas.ajusteTotal;
+    const diff = totalFinal - linea;
+
+    const probModOver = probModeloOver(diff);
+    const probModUnder = 100 - probModOver;
+
+    armarSalida(nombreL, nombreV, totalTeorico, ritmo, totalRitmo, bajas, linea, diff, probModOver, probModUnder, cuotaOver, cuotaUnder, box, false);
+  }
+
+  function analizarEuro() {
+    const nombreL = (document.getElementById('euroLocal').value || 'Local').trim();
+    const nombreV = (document.getElementById('euroVisita').value || 'Visita').trim();
+    const pfL = parseFloat(document.getElementById('euroPfLocal').value);
+    const pcL = parseFloat(document.getElementById('euroPcLocal').value);
+    const pfV = parseFloat(document.getElementById('euroPfVisita').value);
+    const pcV = parseFloat(document.getElementById('euroPcVisita').value);
+    const linea = parseFloat(document.getElementById('euroLinea').value);
+    const cuotaOver = parseFloat(document.getElementById('euroCuotaOver').value);
+    const cuotaUnder = parseFloat(document.getElementById('euroCuotaUnder').value);
+    let ritmo = parseFloat(document.getElementById('euroRitmo').value);
+    const box = document.getElementById('resEuro');
+
+    const ofL = document.getElementById('euroOfLocal').checked;
+    const defL = document.getElementById('euroDefLocal').checked;
+    const ofV = document.getElementById('euroOfVisita').checked;
+    const defV = document.getElementById('euroDefVisita').checked;
+
+    if ([pfL, pcL, pfV, pcV, linea].some(v => isNaN(v))) {
+      box.innerHTML = "Faltan datos. Ingresa PF, PC de ambos equipos y la línea total.";
+      return;
+    }
+    if (isNaN(ritmo) || ritmo <= 0) ritmo = 0.875;
+
+    const totalTeorico = (pfL + pcL + pfV + pcV) / 2;
+    const totalRitmo = totalTeorico * ritmo;
+
+    const bajas = calcularAjusteBajas(nombreL, nombreV, ofL, defL, ofV, defV);
+    const totalFinal = totalRitmo + bajas.ajusteTotal;
+    const diff = totalFinal - linea;
+
+    const probModOver = probModeloOver(diff);
+    const probModUnder = 100 - probModOver;
+
+    armarSalida(nombreL, nombreV, totalTeorico, ritmo, totalRitmo, bajas, linea, diff, probModOver, probModUnder, cuotaOver, cuotaUnder, box, true);
+  }
+</script>
+
+</body>
+</html>
