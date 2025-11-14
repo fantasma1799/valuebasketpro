@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>ValueBasketPro - Basket O/U</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, sans-serif;
+    }
+
+    body {
+      background: #000;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 460px;
+      background: #141414;
+      border-radius: 18px;
+      padding: 22px 18px 26px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+      border: 1px solid #262626;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.6rem;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #c3c3c3;
+      margin-bottom: 18px;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .col {
+      flex: 1;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      margin-bottom: 4px;
+      color: #dddddd;
+    }
+
+    input {
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: 9px;
+      border: 1px solid #333;
+      background: #101010;
+      color: #fff;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+
+    input::placeholder {
+      color: #666;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #f6b800;
+      box-shadow: 0 0 0 1px #f6b80066;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 999px;
+      border: none;
+      font-size: 1rem;
+      font-weight: 700;
+      background: #f6b800;
+      color: #000;
+      margin-top: 4px;
+      cursor: pointer;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .results {
+      margin-top: 16px;
+      background: #101010;
+      border-radius: 16px;
+      padding: 12px 12px 14px;
+      border: 1px solid #262626;
+      font-size: 0.88rem;
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .label {
+      color: #b8b8b8;
+    }
+
+    .value {
+      font-weight: 600;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .tag-good {
+      background: #123b0e;
+      color: #7bff5b;
+    }
+
+    .tag-medium {
+      background: #332600;
+      color: #ffd85c;
+    }
+
+    .tag-bad {
+      background: #3b1111;
+      color: #ff7b7b;
+    }
+
+    .note {
+      font-size: 0.75rem;
+      color: #9a9a9a;
+      margin-top: 8px;
+      line-height: 1.3;
+    }
+
+    .error {
+      font-size: 0.8rem;
+      color: #ff6b6b;
+      margin-top: 6px;
+      min-height: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>ValueBasketPro</h1>
+    <p class="subtitle">
+      Calculadora rápida O/U para basket (local vs visita) con probabilidad,
+      stake sugerido y recomendación.
+    </p>
+
+    <div class="row">
+      <div class="col">
+        <label for="equipoLocal">Equipo local</label>
+        <input
+          id="equipoLocal"
+          type="text"
+          placeholder="Equipo 1"
+        />
+      </div>
+      <div class="col">
+        <label for="equipoVisita">Equipo visita</label>
+        <input
+          id="equipoVisita"
+          type="text"
+          placeholder="Equipo 2"
+        />
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label for="pfLocal">PF local</label>
+        <input
+          id="pfLocal"
+          type="number"
+          step="0.1"
+          placeholder="Pts a favor local"
+        />
+      </div>
+      <div class="col">
+        <label for="paLocal">PA local</label>
+        <input
+          id="paLocal"
+          type="number"
+          step="0.1"
+          placeholder="Pts en contra local"
+        />
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label for="pfVisita">PF visita</label>
+        <input
+          id="pfVisita"
+          type="number"
+          step="0.1"
+          placeholder="Pts a favor visita"
+        />
+      </div>
+      <div class="col">
+        <label for="paVisita">PA visita</label>
+        <input
+          id="paVisita"
+          type="number"
+          step="0.1"
+          placeholder="Pts en contra visita"
+        />
+      </div>
+    </div>
+
+    <label for="linea">Línea de puntos (O/U)</label>
+    <input
+      id="linea"
+      type="number"
+      step="0.5"
+      placeholder="Ej. 165.5"
+    />
+
+    <label for="bankroll">Bankroll (opcional, en soles)</label>
+    <input
+      id="bankroll"
+      type="number"
+      step="1"
+      placeholder="Ej. 500"
+    />
+
+    <button class="btn" onclick="calcular()">Calcular</button>
+
+    <div id="error" class="error"></div>
+
+    <div id="resultados" class="results" style="display: none;">
+      <div class="result-row">
+        <span class="label">Proyección local:</span>
+        <span id="projLocal" class="value"></span>
+      </div>
+      <div class="result-row">
+        <span class="label">Proyección visita:</span>
+        <span id="projVisita" class="value"></span>
+      </div>
+      <div class="result-row">
+        <span class="label">Total proyectado:</span>
+        <span id="projTotal" class="value"></span>
+      </div>
+      <div class="result-row">
+        <span class="label">Diferencia vs línea:</span>
+        <span id="diffLinea" class="value"></span>
+      </div>
+      <div class="result-row">
+        <span class="label">Recomendación:</span>
+        <span id="recomendacion" class="value"></span>
+      </div>
+      <div class="result-row">
+        <span class="label">Stake sugerido:</span>
+        <span id="stake" class="value"></span>
+      </div>
+      <div class="result-row">
+        <span class="label">% prob. aproximada:</span>
+        <span id="probAprox" class="value"></span>
+      </div>
+      <div class="note">
+        Probabilidad basada en la diferencia entre la proyección y la línea.
+        Es una estimación, no garantía. Usa siempre gestión de bank responsable.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function calcular() {
+      const eqLocal = document.getElementById("equipoLocal").value || "Local";
+      const eqVisita = document.getElementById("equipoVisita").value || "Visita";
+
+      const pfLocal = parseFloat(document.getElementById("pfLocal").value);
+      const paLocal = parseFloat(document.getElementById("paLocal").value);
+      const pfVisita = parseFloat(document.getElementById("pfVisita").value);
+      const paVisita = parseFloat(document.getElementById("paVisita").value);
+      const linea = parseFloat(document.getElementById("linea").value);
+      const bankroll = parseFloat(document.getElementById("bankroll").value);
+
+      const errorDiv = document.getElementById("error");
+      const resultados = document.getElementById("resultados");
+
+      errorDiv.textContent = "";
+      resultados.style.display = "none";
+
+      if (
+        isNaN(pfLocal) ||
+        isNaN(paLocal) ||
+        isNaN(pfVisita) ||
+        isNaN(paVisita) ||
+        isNaN(linea)
+      ) {
+        errorDiv.textContent = "Completa todos los datos numéricos (PF/PA y línea).";
+        return;
+      }
+
+      // Proyección simple:
+      // Local = promedio PF local y PA visita
+      // Visita = promedio PF visita y PA local
+      const projLocal = (pfLocal + paVisita) / 2;
+      const projVisita = (pfVisita + paLocal) / 2;
+      const projTotal = projLocal + projVisita;
+
+      const diff = projTotal - linea; // positivo = favorece OVER
+      const absDiff = Math.abs(diff);
+
+      // Recomendación O/U
+      let recTexto = "";
+      let nivel = "";
+      let tagClass = "";
+      let probAprox = 50; // base
+
+      if (absDiff < 2) {
+        recTexto = "Línea bien ajustada, mejor NO apostar";
+        nivel = "sin valor claro";
+        tagClass = "tag tag-bad";
+        probAprox = 50;
+      } else if (absDiff < 5) {
+        if (diff > 0) recTexto = "Ligero valor al OVER";
+        else recTexto = "Ligero valor al UNDER";
+        nivel = "riesgo medio";
+        tagClass = "tag tag-medium";
+        probAprox = 55;
+      } else if (absDiff < 8) {
+        if (diff > 0)
+          recTexto = "Buen valor al OVER (" + eqLocal + " vs " + eqVisita + ")";
+        else
+          recTexto = "Buen valor al UNDER (" + eqLocal + " vs " + eqVisita + ")";
+        nivel = "buena oportunidad";
+        tagClass = "tag tag-good";
+        probAprox = 60;
+      } else {
+        if (diff > 0)
+          recTexto = "Valor fuerte al OVER (" + eqLocal + " vs " + eqVisita + ")";
+        else
+          recTexto = "Valor fuerte al UNDER (" + eqLocal + " vs " + eqVisita + ")";
+        nivel = "oportunidad alta";
+        tagClass = "tag tag-good";
+        probAprox = 65;
+      }
+
+      // Stake sugerido (en % del bank)
+      let stakePct = 0;
+      if (absDiff < 2) {
+        stakePct = 0;
+      } else if (absDiff < 5) {
+        stakePct = 0.01; // 1%
+      } else if (absDiff < 8) {
+        stakePct = 0.02; // 2%
+      } else {
+        stakePct = 0.03; // 3%
+      }
+
+      let stakeTexto = "";
+      if (stakePct === 0) {
+        stakeTexto = "0% (evitar apuesta)";
+      } else if (!isNaN(bankroll) && bankroll > 0) {
+        const stakeMoney = bankroll * stakePct;
+        stakeTexto =
+          (stakePct * 100).toFixed(1) +
+          "% del bank ≈ " +
+          stakeMoney.toFixed(2) +
+          " soles";
+      } else {
+        stakeTexto = (stakePct * 100).toFixed(1) + "% del bank";
+      }
+
+      // Mostrar resultados
+      document.getElementById("projLocal").textContent = projLocal.toFixed(1);
+      document.getElementById("projVisita").textContent = projVisita.toFixed(1);
+      document.getElementById("projTotal").textContent = projTotal.toFixed(1);
+      document.getElementById("diffLinea").textContent =
+        (diff >= 0 ? "+" : "") + diff.toFixed(1) + " pts";
+
+      document.getElementById("recomendacion").innerHTML =
+        recTexto + "<br><span class='" + tagClass + "'>" + nivel + "</span>";
+      document.getElementById("stake").textContent = stakeTexto;
+      document.getElementById("probAprox").textContent =
+        probAprox.toFixed(0) + " %";
+
+      resultados.style.display = "block";
+    }
+  </script>
+</body>
+</html>
